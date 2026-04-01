@@ -1,0 +1,12 @@
+id: "1769551429807"
+alias: "Zappi EV plugged in"
+description: "Fires when an EV is plugged into the Zappi"
+triggers:
+  - trigger: state
+    entity_id: sensor.myenergi_zappi_17004798_plug_status
+    to: "EV Connected"
+actions:
+  - action: notify.notify
+    data:
+      message: "EV has been plugged into the Zappi"
+mode: single

@@ -1,0 +1,25 @@
+id: "1769372119268"
+alias: "MyEnergi display - energy metrics"
+description: "Publish energy data to MQTT for myenergi-display"
+triggers:
+  - trigger: time_pattern
+    seconds: "/59"
+actions:
+  - action: mqtt.publish
+    data:
+      topic: homeassistant/myenergi/energy
+      payload: >-
+        {% set solar = states('sensor.myenergi_rlm_power_generation') | int(0) %}
+        {% set grid = states('sensor.myenergi_rlm_power_grid') | int(0) %}
+        {% set ev = states('sensor.myenergi_rlm_power_charging') | int(0) %}
+        {% set hotwater = states('sensor.myenergi_rlm_power_battery') | int(0) | abs %}
+        {% set house = states('sensor.myenergi_rlm_home_consumption') | int(0) %}
+        {"solar_watts": {{ solar }},
+         "grid_watts": {{ grid }},
+         "house_watts": {{ house }},
+         "ev_charger_watts": {{ ev }},
+         "hotwater_watts": {{ hotwater }},
+         "voltage": {{ states('sensor.myenergi_rlm_voltage_grid') | float(0) }},
+         "frequency": 0,
+         "timestamp": "{{ now().isoformat() }}"}
+mode: single

@@ -1,0 +1,117 @@
+# Home Assistant Devices - exported 2026-03-31
+
+# System
+- name: Sun
+  manufacturer: null
+  model: null
+  entry_type: service
+
+- name: Home Assistant Core
+  manufacturer: Home Assistant
+  model: Home Assistant Core
+  sw_version: "2026.3.4"
+  entry_type: service
+
+- name: Home Assistant Supervisor
+  manufacturer: Home Assistant
+  model: Home Assistant Supervisor
+  sw_version: "2026.03.2"
+  entry_type: service
+
+- name: Home Assistant Host
+  manufacturer: Home Assistant
+  model: Home Assistant Host
+  entry_type: service
+
+- name: Home Assistant Operating System
+  manufacturer: Home Assistant
+  model: Home Assistant Operating System
+  sw_version: "17.1"
+  entry_type: service
+
+- name: Backup
+  manufacturer: Home Assistant
+  model: Home Assistant Backup
+  sw_version: "2026.3.4"
+  entry_type: service
+
+# Media
+- name: Living room TV
+  manufacturer: Google
+  model: Google TV Streamer
+  area_id: living_room
+
+# Weather
+- name: Forecast
+  manufacturer: Met.no
+  model: Forecast
+  entry_type: service
+
+# Z-Wave
+- name: Home Assistant Connect ZWA-2
+  manufacturer: Nabu Casa
+  model: NC-ZWA-9734
+  area_id: hall
+  sw_version: "1.2"
+
+# Zigbee
+- name: Home Assistant Connect ZBT-2
+  manufacturer: Nabu Casa
+  model: Home Assistant Connect ZBT-2
+  area_id: hall
+
+- name: Home Assistant Connect ZBT-2 (DCB4D90C2D50)
+  manufacturer: Nabu Casa
+  model: Home Assistant Connect ZBT-2
+  serial_number: DCB4D90C2D50
+  sw_version: "EmberZNet Zigbee 7.5.1.0"
+
+# Add-ons
+- name: Z-Wave JS
+  manufacturer: Official apps
+  model: Home Assistant Add-on
+  sw_version: "1.1.0"
+
+- name: File editor
+  manufacturer: Official apps
+  model: Home Assistant Add-on
+  sw_version: "5.8.0"
+
+- name: Mosquitto broker
+  manufacturer: Official apps
+  model: Home Assistant Add-on
+  sw_version: "6.5.2"
+
+- name: Terminal & SSH
+  manufacturer: Official apps
+  model: Home Assistant Add-on
+  sw_version: "10.0.2"
+
+# HACS
+- name: HACS
+  manufacturer: hacs.xyz
+  area_id: hall
+  sw_version: "2.0.5"
+
+# Mobile App
+- name: Owen
+  manufacturer: samsung
+  model: SM-N986B
+  sw_version: "33"
+
+# myenergi
+- name: myenergi (HACS integration)
+  manufacturer: "cjne, g6ejd, AJediIAm"
+  model: integration
+
+- name: RLM (myenergi Hub)
+  manufacturer: myenergi
+  model: Hub
+  area_id: hot_press
+
+- name: zappi-17004798
+  manufacturer: myenergi
+  model: Zappi
+  area_id: car
+  sw_version: "3560S5.418"
+

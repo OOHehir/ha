@@ -1,0 +1,22 @@
+# Home Assistant Areas - exported 2026-03-31
+- area_id: living_room
+  name: Living Room
+  icon: mdi:sofa
+
+- area_id: kitchen
+  name: Kitchen
+  icon: mdi:stove
+
+- area_id: bedroom
+  name: Bedroom
+  icon: mdi:bed
+
+- area_id: hall
+  name: Hall
+
+- area_id: car
+  name: Car
+  icon: mdi:car
+
+- area_id: hot_press
+  name: Hot press

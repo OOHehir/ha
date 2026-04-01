@@ -1,0 +1,36 @@
+# Home Assistant Core Configuration - exported 2026-03-31
+location_name: Home
+latitude: 53.3573
+longitude: -6.4499
+elevation: 0
+time_zone: Europe/Dublin
+country: IE
+language: en
+currency: EUR
+radius: 100
+
+unit_system:
+  length: km
+  accumulated_precipitation: mm
+  area: m²
+  mass: g
+  pressure: Pa
+  temperature: °C
+  volume: L
+  wind_speed: m/s
+
+version: "2026.3.4"
+
+allowlist_external_dirs:
+  - /media
+  - /config/www
+
+# Integrations active:
+# - Z-Wave JS (via ZWA-2 stick)
+# - ZHA / Zigbee (via ZBT-2 stick)
+# - myenergi (HACS - Zappi EV charger, Hub)
+# - Google Cast (Living room TV)
+# - Met.no (weather)
+# - MQTT (Mosquitto broker)
+# - HACS
+# - Mobile App (Samsung SM-N986B)
