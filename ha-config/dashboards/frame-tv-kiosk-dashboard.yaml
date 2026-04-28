@@ -1,0 +1,87 @@
+# Frame TV Kiosk Dashboard
+# Photos from Synology DS225+ as wallpanel screensaver background
+# Cards rendered in wallpanel info box overlay
+#
+# To restore: paste frame-tv-dashboard-config.json into
+# Settings > Dashboards > Frame TV > Raw configuration editor
+
+wallpanel:
+  enabled: true
+  hide_toolbar: true
+  hide_sidebar: true
+  fullscreen: true
+  image_url: media-source://media_source/local/synology_photos/
+  image_fit_landscape: cover
+  media_order: random
+  idle_time: 1
+  display_time: 30
+  crossfade_time: 3
+  show_images: true
+  show_image_background: true
+  keep_screen_on: true
+  black_screen_after_time: 0
+  cards_off_idle: false
+  screensaver_stop_navigation: false
+  style:
+    wallpanel-screensaver-info-box:
+      background: "rgba(0,0,0,0.5)"
+      border-radius: 16px
+      padding: 16px
+      backdrop-filter: blur(10px)
+      -webkit-backdrop-filter: blur(10px)
+    wallpanel-screensaver-info-box ha-card:
+      background: "transparent !important"
+      border: "none !important"
+      color: "white !important"
+    wallpanel-screensaver-overlay:
+      background: "linear-gradient(to top, rgba(0,0,0,0.5) 0%, rgba(0,0,0,0.1) 40%, rgba(0,0,0,0.0) 60%, rgba(0,0,0,0.3) 100%)"
+  cards:
+    - type: markdown
+      content: >
+        # {{ now().strftime('%H:%M') }}
+
+        ### {{ now().strftime('%A, %-d %B %Y') }}
+    - type: weather-forecast
+      entity: weather.forecast_home
+      show_forecast: true
+      forecast_type: daily
+    - type: entities
+      title: Energy
+      show_header_toggle: false
+      entities:
+        - entity: sensor.myenergi_rlm_home_consumption
+          name: Home consumption
+        - entity: sensor.myenergi_rlm_power_grid
+          name: Grid power
+        - entity: sensor.myenergi_rlm_power_generation
+          name: Solar generation
+        - entity: sensor.myenergi_rlm_generated_today
+          name: Generated today
+    - type: entities
+      title: EV Charger
+      show_header_toggle: false
+      entities:
+        - entity: sensor.myenergi_zappi_17004798_status
+          name: Zappi status
+        - entity: sensor.myenergi_zappi_17004798_plug_status
+          name: Plug status
+        - entity: sensor.myenergi_zappi_17004798_charge_added_session
+          name: Charge added
+    - type: entities
+      title: Room
+      show_header_toggle: false
+      entities:
+        - entity: binary_sensor.sonoff_snzb_06p
+          name: Presence
+        - entity: media_player.living_room_tv
+          name: TV
+        - entity: sensor.home_assistant_connect_zwa_2_status
+          name: Z-Wave
+
+title: Frame TV
+views:
+  - title: Home
+    type: sections
+    max_columns: 1
+    cards: []
+    sections: []

@@ -1,0 +1,17 @@
+{
+  "mcpServers": {
+    "ha-mcp": {
+      "type": "stdio",
+      "command": "uv",
+      "args": [
+        "run",
+        "--directory",
+        "/home/repo/ha/ha-mcp",
+        "python",
+        "-m",
+        "ha_mcp"
+      ],
+      "env": {}
+    }
+  }
+}

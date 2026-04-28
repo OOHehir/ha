@@ -25,11 +25,16 @@ allowlist_external_dirs:
   - /media
   - /config/www
 
+hdmi_cec:
+  devices:
+    TV: 0.0.0.0
+
 # Integrations active:
 # - Z-Wave JS (via ZWA-2 stick)
 # - ZHA / Zigbee (via ZBT-2 stick)
 # - myenergi (HACS - Zappi EV charger, Hub)
 # - Google Cast (Living room TV)
+# - HDMI-CEC (Samsung Frame TV via RPi5 micro-HDMI)
 # - Met.no (weather)
 # - MQTT (Mosquitto broker)
 # - HACS

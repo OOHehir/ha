@@ -1,0 +1,28 @@
+id: presence_frame_tv
+alias: "Frame TV — presence on/off"
+description: "SNZB-06P presence turns Frame TV on via CEC (broadcasts Active Source so the TV switches to the RPi5's HDMI input). Standby after 5 min idle."
+triggers:
+  - trigger: state
+    entity_id: binary_sensor.sonoff_snzb_06p
+    to: "on"
+    id: presence_on
+  - trigger: state
+    entity_id: binary_sensor.sonoff_snzb_06p
+    to: "off"
+    for: "00:05:00"
+    id: presence_off
+actions:
+  - choose:
+      - conditions:
+          - condition: trigger
+            id: presence_on
+        sequence:
+          - action: hdmi_cec.power_on
+      - conditions:
+          - condition: trigger
+            id: presence_off
+        sequence:
+          - action: switch.turn_off
+            target:
+              entity_id: switch.hdmi_0
+mode: restart
