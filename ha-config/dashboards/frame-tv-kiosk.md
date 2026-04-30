@@ -79,23 +79,17 @@ Use a **Sonoff SNZB-06P** (Zigbee mmWave presence sensor) to turn the Frame TV o
 2. Once paired, it exposes `binary_sensor.sonoff_snzb_06p` (confirmed entity ID)
 3. Mount the sensor with line of sight to the seating area — mmWave detects stationary presence, not just motion
 
-### TV control via Cast integration
+### TV control
 
-The Frame TV is already available in HA as `media_player.living_room_tv` via the Cast integration. This provides power control directly — no CEC or shell commands needed.
-
-**Test via Developer Tools > Services:**
-
-```yaml
-# Turn TV on
-action: media_player.turn_on
-target:
-  entity_id: media_player.living_room_tv
-
-# Turn TV off
-action: media_player.turn_off
-target:
-  entity_id: media_player.living_room_tv
-```
+> **Note (2026-04-30):** `media_player.living_room_tv` is the Google TV Streamer, not the Frame. Frame control is split across two integrations:
+>
+> | Action | Service | Why |
+> |---|---|---|
+> | **ON** | `hdmi_cec.power_on` | Broadcasts Active Source so the Frame wakes AND switches to **HDMI 1** (the RPi5). `samsungtv`'s `media_player.turn_on` cannot wake the Frame from cold (no WoL/MAC) and would not switch input. |
+> | **OFF** | `media_player.turn_off` on `media_player.samsung_the_frame_qe32ls03tbkxxu` | Directed CEC `<Standby>` is silently ignored by Frame TVs (verified by manual test). The built-in `samsungtv` integration's `turn_off` works reliably. |
+> | **Art Mode** | `remote.send_command` with `KEY_POWER` on `remote.samsung_the_frame_qe32ls03tbkxxu` | TV must be on first. KEY_POWER toggles between full-on and Art Mode. There's no dedicated art-mode service in the built-in integration. |
+>
+> Note: `media_player.select_source` on the Frame only offers `["TV", "HDMI"]` and "HDMI" routes to **HDMI 2** (the Streamer), not HDMI 1.
 
 ### Automation: turn TV on/off based on presence
 
