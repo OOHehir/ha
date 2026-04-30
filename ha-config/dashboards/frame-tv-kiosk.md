@@ -49,6 +49,8 @@ Both `127.0.0.1/32` and `::1/128` (IPv6 localhost) are required — the kiosk ad
 
 > **Note:** HAOSKiosk uses Luakit (webkit-based), not Chromium. Most dashboard cards render fine, but very complex custom cards may behave slightly differently.
 
+> **Gotcha — display must be connected at addon start (2026-04-30):** HAOSKiosk checks DRM connector state on startup and exits with `ERROR: No connected video card detected. Exiting..` if both HDMI ports report `disconnected`. The watchdog gives up after a few retries and the addon stays in `error` state — it does **not** auto-recover when the display comes back. Symptom: TV shows the Linux console (RPi5's bare framebuffer) instead of the dashboard. Fix: ensure the Frame is on HDMI 1 (RPi5) and `hassio.addon_start` the addon. Long-term: an automation that restarts the addon on `presence_on` would harden this.
+
 ## Step 2: Samsung Frame TV — Art Mode considerations
 
 The Frame TV's Art Mode activates when it detects idle state. To prevent it switching away from the HDMI input:
