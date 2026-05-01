@@ -74,11 +74,21 @@ views:
                 name: Charge added
               - entity: sensor.myenergi_zappi_17004798_energy_used_today
                 name: Energy used today
-          - type: tile
-            entity: sensor.nissan_leaf_obd_ble_state_of_charge
+          # SOC scaled by hardcoded SOH factor (0.807) to match the in-car
+          # dashboard reading. OBD reports % of original capacity; the car's
+          # display shows % of current (degraded) capacity. Re-tune the
+          # factor every few months as the battery ages further.
+          - type: markdown
+            content: |
+              ### Leaf battery
+
+              ## {{ ((states('sensor.nissan_leaf_obd_ble_state_of_charge') | float(0)) / 0.807) | round(0) }}%
+
+              Raw OBD: {{ states('sensor.nissan_leaf_obd_ble_state_of_charge') | float(0) | round(1) }}%
+              Updated {{ relative_time(states.sensor.nissan_leaf_obd_ble_state_of_charge.last_updated) }} ago
             grid_options:
               columns: 12
-              rows: 1
+              rows: 3
 
       - type: grid
         cards:

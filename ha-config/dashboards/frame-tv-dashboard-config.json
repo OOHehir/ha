@@ -76,9 +76,9 @@
               }
             },
             {
-              "type": "tile",
-              "entity": "sensor.nissan_leaf_obd_ble_state_of_charge",
-              "grid_options": { "columns": 12, "rows": 1 }
+              "type": "markdown",
+              "content": "### Leaf battery\n\n## {{ ((states('sensor.nissan_leaf_obd_ble_state_of_charge') | float(0)) / 0.807) | round(0) }}%\n\nRaw OBD: {{ states('sensor.nissan_leaf_obd_ble_state_of_charge') | float(0) | round(1) }}%  \nUpdated {{ relative_time(states.sensor.nissan_leaf_obd_ble_state_of_charge.last_updated) }} ago",
+              "grid_options": { "columns": 12, "rows": 3 }
             }
           ]
         },
