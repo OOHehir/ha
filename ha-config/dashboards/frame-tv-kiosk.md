@@ -61,13 +61,13 @@ The Frame TV's Art Mode activates when it detects idle state. To prevent it swit
 
 ## Step 3: Dashboard design tips for a wall display
 
-- Use a **Panel (single card)** dashboard or a dedicated view with `panel: true`
+Current setup (post-2026-05-01): plain `sections`-layout dashboard rendered fullscreen by HAOSKiosk. The kiosk addon hides the toolbar and sidebar via its own config (`ha_sidebar: none`), so no `kiosk-mode` HACS install needed.
+
+- Use the **sections** view type with `max_columns: 4` — predictable column layout, edit live in the UI editor
 - Dark theme works well on the Frame TV QLED display
-- Hide the sidebar and header for a clean kiosk look:
-  - Install **kiosk-mode** via HACS > Frontend
-  - This hides the sidebar, header, and overflow menu
-- Suggested cards: weather, time, energy (Zappi), room status
-- Use `browser_mod` integration for periodic refresh if needed
+- Snapshot of the current dashboard config lives in `frame-tv-dashboard-config.json` and `frame-tv-kiosk-dashboard.yaml`
+- For a graph card, install `apexcharts-card` via HACS — `data_generator` lets you plot dict attributes (e.g. Solcast hourly forecast)
+- See "Lessons learned" below for what we tried and dropped
 
 ## Step 4: Presence-based display control with Sonoff SNZB-06P
 
@@ -130,19 +130,65 @@ action:
 - If Cast power control proves unreliable, HDMI-CEC is a fallback — add `hdmi_cec:` to `configuration.yaml` and the RPi5 can control the TV over the HDMI cable directly
 - Some Samsung TVs need CEC enabled in settings: **Settings > General > External Device Manager > Anynet+ (HDMI-CEC) > On**
 
+## Lessons learned (2026-05-01)
+
+This section records dead ends and gotchas hit while iterating on this setup, so we don't re-walk them.
+
+### Dropped wallpanel — kept HAOSKiosk
+
+We initially used [lovelace-wallpanel](https://github.com/j-a-n/lovelace-wallpanel) for a Synology photo slideshow with cards as an info-box overlay. It's gone now. Friction that drove the decision:
+
+- **Dual config trap.** Wallpanel uses its own `wallpanel.cards` list separate from `views[*].sections[*].cards`. The HA UI editor only writes to the view sections — so edits made on desktop *appeared to save* but never showed on the TV (because the TV was rendering wallpanel.cards). You end up keeping two copies of the same card definitions in sync by hand.
+- **Hardcoded card width via CSS variable.** Each card is wrapped in a container whose width is `var(--wp-card-width)`, set inline by JS to `500px`. There is no `card_width` config option that takes effect — only overriding the variable in the style block does:
+  ```yaml
+  wallpanel:
+    style:
+      wallpanel-screensaver-info-box:
+        --wp-card-width: "1800px"
+  ```
+- **Style block selector keys are element IDs without `#` prefix.** Valid IDs: `wallpanel-screensaver-info-box`, `wallpanel-screensaver-info-box-content`, `wallpanel-screensaver-overlay`, `wallpanel-screensaver-info-box-badges`, `wallpanel-screensaver-info-box-views`. The info-box itself defaults to `width: fit-content`; setting `width: 95vw` or `min-width` on it was overridden by wallpanel's inline style. The CSS variable approach was the only thing that actually worked.
+- **`infoBoxContent` is a single-column CSS grid by default.** To get multi-column you have to either widen each card and let inner `grid`/`horizontal-stack` cards spread, or override `grid-template-columns` on `wallpanel-screensaver-info-box-content`.
+
+A plain `sections` dashboard with `max_columns: 4` rendered fullscreen by HAOSKiosk gives 95% of the value with none of this. Trade-off: the rotating photo background is gone.
+
+### Forecast.Solar (HA core integration) — no per-hour attributes
+
+The HA Core `forecast_solar` integration (HACS-free) used to expose per-hour data as `wh_hours` / `watts` dict attributes on `sensor.energy_production_today`. Those were removed in 2024+; the integration now only exposes scalar sensors (today total, remaining today, peak time, this hour, next hour, etc.). The replacement action `forecast_solar.get_forecasts` is *not* registered on this install.
+
+Result: you cannot draw a forward-looking hourly forecast bar chart from `forecast_solar` alone with apexcharts-card. We installed [Solcast PV Forecast](https://github.com/BJReplay/ha-solcast-solar) via HACS instead — it exposes the hourly forecast in `sensor.solcast_pv_forecast_forecast_today`'s `detailedHourly` attribute (list of `{period_start, pv_estimate, pv_estimate10, pv_estimate90}`), which apexcharts can plot directly via `data_generator`.
+
+### Solcast — site ID is not the API key
+
+The integration's "API key" field needs the **API key** from solcast.com → Account → API Toolkit (typically a 36-char UUID), NOT the **site ID** (also UUID-looking, lives in URLs like `/rooftop_sites/<site-id>/forecasts`). Pasting the site ID gets you a `404/Not Found` from the integration's `get sites` call (it's sent as a bearer token; no site matches).
+
+Site IDs are auto-discovered from the API key — you don't enter them manually.
+
+### Solcast — site capacity defaults to something useless
+
+Solcast.com's site setup asks for "Total kW". If you skip it or leave a default, the forecast is generated against that capacity and clips at it. We saw `peak_forecast_today: 100000` (W) for a residential array because the site was registered with 100 kW capacity. Set this to your real array's kWp on solcast.com → My Sites → Edit before trusting any forecast values.
+
+### apexcharts-card — duplicate registration breaks the card silently
+
+HACS auto-registers Lovelace JS resources for installed cards (with a `?hacstag=...` query string). If you also manually add the resource via `Settings → Dashboards → Resources` (or `ha_config_set_dashboard_resource` over MCP), the card module loads twice. The second load throws `Failed to execute 'define' on 'CustomElementRegistry': the name "apexcharts-card-action-handler" has already been used` and the card silently fails to render.
+
+Fix: keep only ONE resource entry. The HACS-managed one (with `?hacstag=...`) is preferred since HACS will keep it in sync with updates.
+
+### HAOSKiosk + HA 2026.4+ auto-login
+
+HAOSKiosk's built-in auto-login form-fill fails on HA 2026.4+ ("Auto-login failed: missing elements") due to shadow DOM changes in the login page. Fix is documented in Step 1 above (trusted_networks bypass).
+
 ## Hardware checklist
 
 - [x] Micro-HDMI to HDMI cable connected
-- [x] HDMI output confirmed (console visible)
-- [x] Cast integration working (`media_player.living_room_tv`)
+- [x] HDMI output confirmed
+- [x] Cast integration working (`media_player.living_room_tv` — Google TV Streamer on HDMI 2)
 - [x] HACS installed
 - [x] HAOSKiosk add-on installed and configured (trusted networks auth required for auto-login)
 - [x] Sonoff SNZB-06P paired via ZHA (`binary_sensor.sonoff_snzb_06p`)
-- [x] Dashboard designed for wall display (wallpanel photo slideshow + card-mod transparent cards)
-- [x] Synology Photos mounted via SMB (`/media/synology_photos` from `ds.local`)
-- [x] wallpanel installed via HACS
-- [ ] card-mod installed via HACS (needed for transparent card styling)
-- [ ] Sonoff SNZB-06P mounted in room with line of sight to seating area
-- [ ] Frame TV Art Mode / auto-source switching disabled
-- [ ] Presence automation created and tested
-- [ ] kiosk-mode installed via HACS
+- [x] apexcharts-card installed via HACS (for solar forecast graph)
+- [x] Solcast PV Forecast installed via HACS and configured with API key + site capacity
+- [x] Frame TV control via `samsungtv` (off) + `hdmi_cec` (on); Art Mode via `remote.send_command KEY_POWER`
+- [x] Presence automation `automation.frame_tv_presence_on_off` (`automations/presence_frame_tv.yaml`)
+- [x] Plain sections dashboard (no wallpanel, no card-mod, no kiosk-mode)
+- [ ] Frame TV Art Mode / auto-source switching disabled in TV settings
+- [ ] (Optional) Re-evaluate wallpanel/photo-slideshow if static dashboard feels too plain

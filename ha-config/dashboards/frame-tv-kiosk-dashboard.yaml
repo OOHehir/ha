@@ -1,87 +1,124 @@
-# Frame TV Kiosk Dashboard
-# Photos from Synology DS225+ as wallpanel screensaver background
-# Cards rendered in wallpanel info box overlay
+# Frame TV Kiosk Dashboard — snapshot
+#
+# This is a snapshot of the live dashboard config, kept in source control
+# for reference and recovery. The live config is stored in HA's .storage
+# (storage-mode dashboard, url_path: frame-tv).
 #
 # To restore: paste frame-tv-dashboard-config.json into
 # Settings > Dashboards > Frame TV > Raw configuration editor
-
-wallpanel:
-  enabled: true
-  hide_toolbar: true
-  hide_sidebar: true
-  fullscreen: true
-  image_url: media-source://media_source/local/synology_photos/
-  image_fit_landscape: cover
-  media_order: random
-  idle_time: 1
-  display_time: 30
-  crossfade_time: 3
-  show_images: false
-  show_image_background: false
-  keep_screen_on: true
-  black_screen_after_time: 0
-  cards_off_idle: false
-  screensaver_stop_navigation: false
-  style:
-    wallpanel-screensaver-info-box:
-      background: "rgba(0,0,0,0.5)"
-      border-radius: 16px
-      padding: 16px
-      backdrop-filter: blur(10px)
-      -webkit-backdrop-filter: blur(10px)
-    wallpanel-screensaver-info-box ha-card:
-      background: "transparent !important"
-      border: "none !important"
-      color: "white !important"
-    wallpanel-screensaver-overlay:
-      background: "linear-gradient(to top, rgba(0,0,0,0.5) 0%, rgba(0,0,0,0.1) 40%, rgba(0,0,0,0.0) 60%, rgba(0,0,0,0.3) 100%)"
-  cards:
-    - type: markdown
-      content: >
-        # {{ now().strftime('%H:%M') }}
-
-        ### {{ now().strftime('%A, %-d %B %Y') }}
-    - type: weather-forecast
-      entity: weather.forecast_home
-      show_forecast: true
-      forecast_type: daily
-    - type: entities
-      title: Energy
-      show_header_toggle: false
-      entities:
-        - entity: sensor.myenergi_rlm_home_consumption
-          name: Home consumption
-        - entity: sensor.myenergi_rlm_power_grid
-          name: Grid power
-        - entity: sensor.myenergi_rlm_power_generation
-          name: Solar generation
-        - entity: sensor.myenergi_rlm_generated_today
-          name: Generated today
-    - type: entities
-      title: EV Charger
-      show_header_toggle: false
-      entities:
-        - entity: sensor.myenergi_zappi_17004798_status
-          name: Zappi status
-        - entity: sensor.myenergi_zappi_17004798_plug_status
-          name: Plug status
-        - entity: sensor.myenergi_zappi_17004798_charge_added_session
-          name: Charge added
-    - type: entities
-      title: Room
-      show_header_toggle: false
-      entities:
-        - entity: binary_sensor.sonoff_snzb_06p
-          name: Presence
-        - entity: media_player.living_room_tv
-          name: TV
-        - entity: sensor.home_assistant_connect_zwa_2_status
-          name: Z-Wave
+#
+# History note: this dashboard previously used the `wallpanel` HACS card
+# for a Synology photo slideshow with a cards overlay. We dropped it on
+# 2026-05-01 because of layout friction (see frame-tv-kiosk.md "Lessons
+# learned"). It's now a plain sections-based dashboard rendered fullscreen
+# by HAOSKiosk.
 
 title: Frame TV
 views:
   - title: Home
     type: sections
-    max_columns: 1
+    max_columns: 4
     cards: []
-    sections: []
+    header:
+      layout: center
+      badges_position: top
+      badges_wrap: wrap
+    sections:
+      - type: grid
+        column_span: 1
+        cards:
+          - type: markdown
+            content: |
+              # {{ now().strftime('%H:%M') }}
+              ### {{ now().strftime('%A, %-d %B %Y') }}
+          - type: weather-forecast
+            entity: weather.forecast_home
+            show_forecast: true
+            forecast_type: daily
+
+      - type: grid
+        column_span: 1
+        cards:
+          - type: entities
+            title: Energy
+            show_header_toggle: false
+            entities:
+              - entity: sensor.myenergi_rlm_home_consumption
+                name: Home consumption
+              - entity: sensor.myenergi_rlm_power_grid
+                name: Grid power
+              - entity: sensor.myenergi_rlm_power_generation
+                name: Solar generation
+              - entity: sensor.myenergi_rlm_grid_import_today
+                name: Grid import today
+              - entity: sensor.myenergi_rlm_grid_export_today
+                name: Grid export today
+              - entity: sensor.myenergi_rlm_generated_today
+                name: Generated today
+
+      - type: grid
+        cards:
+          - type: heading
+            heading: EV
+          - type: entities
+            title: EV Charger
+            show_header_toggle: false
+            entities:
+              - entity: sensor.myenergi_zappi_17004798_status
+                name: Zappi status
+              - entity: select.myenergi_zappi_17004798_charge_mode
+                name: Charge mode
+              - entity: sensor.myenergi_zappi_17004798_plug_status
+                name: Plug status
+              - entity: sensor.myenergi_zappi_17004798_charge_added_session
+                name: Charge added
+              - entity: sensor.myenergi_zappi_17004798_energy_used_today
+                name: Energy used today
+          - type: tile
+            entity: sensor.nissan_leaf_obd_ble_state_of_charge
+            grid_options:
+              columns: 12
+              rows: 1
+
+      - type: grid
+        cards:
+          - type: heading
+            heading: Solar
+          - type: custom:apexcharts-card
+            header:
+              show: true
+              title: Solar forecast - today (kW)
+              show_states: true
+              colorize_states: true
+            graph_span: 24h
+            span:
+              start: day
+            yaxis:
+              - min: 0
+                apex_config:
+                  title:
+                    text: kW
+            series:
+              - entity: sensor.solcast_pv_forecast_forecast_today
+                name: Forecast
+                type: column
+                color: "#FFC107"
+                data_generator: |
+                  return entity.attributes.detailedHourly.map(e =>
+                    [new Date(e.period_start).getTime(), e.pv_estimate]);
+              - entity: sensor.solcast_pv_forecast_forecast_today
+                name: 10th pct
+                type: line
+                color: "#F44336"
+                stroke_width: 1
+                data_generator: |
+                  return entity.attributes.detailedHourly.map(e =>
+                    [new Date(e.period_start).getTime(), e.pv_estimate10]);
+              - entity: sensor.solcast_pv_forecast_forecast_today
+                name: 90th pct
+                type: line
+                color: "#4CAF50"
+                stroke_width: 1
+                data_generator: |
+                  return entity.attributes.detailedHourly.map(e =>
+                    [new Date(e.period_start).getTime(), e.pv_estimate90]);
